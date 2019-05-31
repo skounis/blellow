@@ -1,0 +1,59 @@
+{#
+/**
+ * @file
+ * Theme override to display a node.
+ *
+ * @see ./core/themes/stable/templates/content/node.html.twig
+ */
+#}
+
+{%
+  set classes = [
+    'bl-node',
+    'bl-node--' ~ node.bundle|clean_class,
+    node.isPromoted() ? 'bl-node--promoted',
+    node.isSticky() ? 'bl-node--sticky',
+    not node.isPublished() ? 'node--unpublished newsfeed__item--unpublished',
+    view_mode ? 'bl-node--' ~ view_mode|clean_class,
+  ]
+%}
+
+{# avatar_url #}
+{% if node.uid.entity.user_picture.entity.uri.value is empty %}
+  {% set avatar_url = file_url(directory ~ '/images/default_user.jpg') %}
+{% else %}
+  {% set avatar_url = file_url(node.uid.entity.user_picture.entity.uri.value|image_style('thumbnail')) %}
+{% endif %}
+
+{# Link to Author profile if users is logged in #}
+{% if logged_in %}
+  {% set author_link = path('entity.user.canonical', {'user': node.getOwnerId()}) %}
+{% endif %}
+
+<article {{ attributes.addClass(classes) }}>
+  {% block node_side %} 
+    <div class="bl-node__side">
+      {{ content.fut_event_date }}
+      {% include '@cnectlib/cnect-contentmeta/cnect-contentmeta.html.twig' with {
+        'avatar_url': avatar_url,
+        'author_link': author_link,
+        'group_name': author_name,
+        'date': date,
+      } %}
+    </div>
+  {% endblock node_side %}
+  {% block node_content %}  
+  <div class="bl-node__content">
+    <div class="bl-content">
+      {% if not page %}
+        <h3{{ title_attributes }}>
+          <a href="{{ url }}" rel="bookmark">{{ label }}</a>
+        </h3>
+      {% endif %}
+      <div {{ content_attributes }}>
+        {{ content|without('fut_event_date') }}
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+</article>
